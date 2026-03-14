@@ -4,7 +4,7 @@ Turn a fuzzy coding request into shipped, reviewed code.
 
 `prompt.md -> research.md -> plan.md -> build -> review.md`
 
-Forge is a staged skill for Codex and Claude. It pushes a non-trivial coding task through a git-backed workflow that runs end to end by default while staying easy to review, resume, and revert.
+Forge is a staged skill for Codex and Claude. Invoke it explicitly with `$forge` or `/forge` when you want this workflow; it should not auto-trigger just because a task looks like a fit. It pushes a non-trivial coding task through a git-backed workflow that runs end to end by default while staying easy to review, resume, and revert.
 
 ## Why Forge
 
@@ -136,6 +136,8 @@ Use `--mode link` or `-Mode link` if you want a live symlink during development.
 ## Use
 
 Start a new session after installing.
+
+Forge is intended for explicit invocation only. Do not rely on the agent inferring Forge from the task shape alone.
 
 ```text
 Codex  : $forge 帮我实现一个新的导出功能

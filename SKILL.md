@@ -1,12 +1,14 @@
 ---
 name: forge
-description: Five-stage workflow for coding tasks that starts from a detected stage and, by default, runs through `prompt.md`, `research.md`, `plan.md`, implementation, and `review.md` in one invocation. Use when Codex should refine a user's request into staged artifacts, keep each stage reviewable with dedicated git commits, and resume from an explicitly mentioned `prompt.md`, `research.md`, `plan.md`, or `review.md`.
+description: Explicit-invocation-only five-stage workflow for coding tasks. Use this skill only when the user explicitly invokes `forge` or `$forge` and wants a request turned into `prompt.md`, `research.md`, `plan.md`, implementation, `review.md`, and stage commits; do not trigger it from task shape alone.
 license: Apache-2.0
 ---
 
 # Forge
 
 ## Overview
+
+Run this skill only when the current user request explicitly invokes `forge` or `$forge`. If the request merely resembles a staged coding task, do not use Forge.
 
 Advance the work from the detected starting stage through stage 5 in one invocation unless the user explicitly asks to stop after a specific stage.
 

@@ -1,4 +1,4 @@
 interface:
   display_name: "Forge"
-  short_description: "Git-backed end-to-end prompt, research, plan, build, review workflow"
-  default_prompt: "Use $forge to turn a coding request into prompt.md, research.md, plan.md, implementation changes, review.md, and stage commits in one default run. Mention a stage file only when you want to resume from that point."
+  short_description: "Explicit-invocation-only git-backed prompt, research, plan, build, review workflow"
+  default_prompt: "Invoke with $forge when you want a coding request turned into prompt.md, research.md, plan.md, implementation changes, review.md, and stage commits in one default run. Mention a stage file only when you want to resume from that point."
