@@ -10,6 +10,57 @@ Forge is a staged skill for **Codex** and **Claude**:
 - Keep every stage reviewable and revertable with git
 - End with a blocking-issue review loop before calling it done
 
+## 🏗️ Architecture
+
+```mermaid
+flowchart LR
+    user([User request]) --> route{Explicit stage file?}
+
+    route -->|none| s1["Stage 1<br/>Refine request"]
+    s1 --> p["prompt.md"]
+    p --> c1["git commit<br/>stage1"]
+
+    route -->|prompt.md| s2["Stage 2<br/>Research"]
+    p --> s2
+    s2 --> r["research.md"]
+    r --> c2["git commit<br/>stage2"]
+
+    route -->|research.md| s3["Stage 3<br/>Plan"]
+    r --> s3
+    s3 --> plan["plan.md"]
+    plan --> c3["git commit<br/>stage3"]
+
+    route -->|plan.md| s4["Stage 4<br/>Build"]
+    plan --> s4
+    s4 --> code["Implementation"]
+    code --> c4["git commit<br/>stage4"]
+
+    route -->|review.md| s5["Stage 5<br/>Review"]
+    code --> s5
+    s5 --> review["review.md"]
+    review --> gate{Blocking issues?}
+    gate -->|Yes| fix["Fix + verify"]
+    fix --> s5
+    gate -->|No| c5["git commit<br/>stage5"]
+
+    classDef stage fill:#FFF4E5,stroke:#D97706,color:#7C2D12,stroke-width:1.5px;
+    classDef artifact fill:#EFF6FF,stroke:#2563EB,color:#1E3A8A,stroke-width:1.5px;
+    classDef commit fill:#ECFDF3,stroke:#16A34A,color:#166534,stroke-width:1.5px;
+    classDef decision fill:#FEF2F2,stroke:#DC2626,color:#991B1B,stroke-width:1.5px;
+    classDef action fill:#F5F3FF,stroke:#7C3AED,color:#5B21B6,stroke-width:1.5px;
+
+    class s1,s2,s3,s4,s5 stage;
+    class p,r,plan,code,review artifact;
+    class c1,c2,c3,c4,c5 commit;
+    class route,gate decision;
+    class fix action;
+```
+
+Quick read:
+
+- Mention `prompt.md`, `research.md`, `plan.md`, or `review.md` explicitly to resume from that stage.
+- If an upstream artifact changes, downstream stage commits are reverted before the flow continues.
+
 ## ⚡ Install
 
 ### macOS / Linux
