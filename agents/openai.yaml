@@ -1,0 +1,4 @@
+interface:
+  display_name: "Forge"
+  short_description: "Five-stage prompt, research, plan, build, review flow"
+  default_prompt: "Use $forge to advance a task through prompt.md, research.md, plan.md, review.md, and stage commits."
