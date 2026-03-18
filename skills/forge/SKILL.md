@@ -18,6 +18,8 @@ Write `prompt.md`, `research.md`, `plan.md`, and `review.md` in the language of 
 
 Create or update all stage files in the current working directory.
 
+Forge requires subagent support for its intended stage 4 and stage 5 execution model. Do not silently collapse those stages back into a single-agent build-and-review flow.
+
 ## Detect the Stage
 
 Treat a stage file as the starting-stage resume signal only when the current user request explicitly includes the literal filename.
@@ -49,6 +51,20 @@ Use this format:
 - `Current stage: stage 3 - generate plan.md`
 - `Current stage: stage 4 - implement plan.md`
 - `Current stage: stage 5 - review implementation`
+
+## Subagent Rules
+
+- Stage 4 must run through exactly one dedicated implementation subagent.
+- Spawn that implementation subagent only after `research.md` and `plan.md` are finalized for the current invocation.
+- Pass both `research.md` and `plan.md` to the implementation subagent as explicit inputs or equivalent context attachments.
+- The implementation subagent owns stage 4 code changes and the first pass of stage 4 validation.
+- The main agent remains responsible for orchestration, integration of the implementation result into the main workspace when needed, and the final `stage4: implement plan.md` commit.
+- If the execution environment uses isolated subagent workspaces, the implementation subagent should return a concrete patch, diff, or changed-file result that the main agent integrates before committing.
+- Stage 5 must run as three parallel review tracks: the main agent plus exactly two independent review subagents.
+- Review subagents are reviewers only. They must not create commits and should not be the agents that fix blocking issues.
+- Give the two review subagents distinct review focus areas whenever practical, for example one focused on requirements and correctness, the other focused on regressions, tests, and edge cases.
+- The main agent must aggregate the two review-subagent outputs together with its own review into the final `review.md`.
+- If any blocking issue is found, only the main agent fixes it, reruns the relevant verification, relaunches both review subagents, reruns its own review, and repeats stage 5 until no blocking issue remains.
 
 ## Git Rules
 
@@ -145,15 +161,19 @@ Continue to stage 4 unless the user explicitly asked to stop after stage 3 or af
 
 Run stage 4 when the detected starting stage is stage 4 or when stage 3 just completed and the workflow is continuing.
 
-Require `plan.md` to exist. If it is missing, say so and stop.
+Require both `research.md` and `plan.md` to exist. If either file is missing, say exactly which file is missing and stop.
 
-Implement the repository changes described in `plan.md`.
+Spawn one dedicated implementation subagent for stage 4 and pass it `research.md` plus `plan.md`.
 
 If `plan.md` was updated after an earlier implementation, revert the stale `stage4` commit first, then apply the new implementation.
 
-Follow `plan.md` closely. If implementation reveals a material flaw or contradiction in `plan.md`, stop and discuss the gap instead of silently changing the plan.
+Instruct the implementation subagent to implement the repository changes described in `plan.md`, follow `plan.md` closely, run the most relevant validation from `plan.md` when feasible, and report any material flaw or contradiction in `plan.md` instead of silently changing the plan.
 
-Run the most relevant validation or tests from `plan.md` when feasible. If a planned test cannot be run, say why.
+After the implementation subagent finishes, inspect and integrate its result into the main workspace if needed.
+
+If the implementation subagent reports a material flaw or contradiction in `plan.md`, stop and discuss the gap instead of silently changing the plan.
+
+Run any missing or follow-up validation needed to confirm the integrated implementation. If a planned test cannot be run, say why.
 
 After implementation, create the commit `stage4: implement plan.md`.
 
@@ -165,21 +185,24 @@ Run stage 5 when the detected starting stage is stage 5 or when stage 4 just com
 
 Require `plan.md` to exist and require an active `stage4: implement plan.md` commit in the current repository history. If either prerequisite is missing, say so and stop.
 
-Treat stage 5 as a fresh review pass that is separate from the implementation mindset used in stage 4. Review the completed functionality end to end, generate or overwrite `review.md`, and decide whether any blocking issue remains.
+Treat stage 5 as a fresh review pass that is separate from the implementation mindset used in stage 4. Launch two independent review subagents, perform the main-agent review in parallel, generate or overwrite `review.md`, and decide whether any blocking issue remains.
 
 Blocking issues are defects that must be fixed before the workflow can be considered complete, such as incorrect behavior, unmet requirements, broken flows, failing required tests, data-loss risks, security problems, or severe regressions. Non-blocking concerns may stay documented in `review.md` without forcing another implementation loop.
 
 Stage 5 is an internal loop inside one invocation:
 
-- review the current implementation and write the current findings to `review.md`
-- if blocking issues exist, fix them immediately without creating an intermediate commit
-- rerun the relevant review and verification steps
+- launch two review subagents with distinct review focus areas
+- run the main-agent review in parallel with those review subagents
+- aggregate all three review passes and write the current findings to `review.md`
+- if blocking issues exist, fix them immediately in the main workspace without creating an intermediate commit
+- rerun the relevant verification steps
+- relaunch both review subagents and rerun the main-agent review
 - update `review.md` to reflect the latest pass
 - repeat until no blocking issue remains
 
 Keep exactly one final stage 5 commit for the whole loop. Do not create intermediate commits for individual fixes discovered during review.
 
-Make `review.md` concise and decision-oriented. Include the review scope, what was checked, any blocking issues that were found and fixed during the loop, any remaining non-blocking concerns, and an explicit final status stating whether blocking issues remain. The final saved `review.md` must state that no blocking issues remain before the workflow can end.
+Make `review.md` concise and decision-oriented. Include the review scope, what was checked, a brief summary of the main-agent review plus the two review-subagent passes, any blocking issues that were found and fixed during the loop, any remaining non-blocking concerns, and an explicit final status stating whether blocking issues remain. The final saved `review.md` must state that no blocking issues remain before the workflow can end.
 
 After the review loop finishes with no blocking issues remaining, create the commit `stage5: review and fix blocking issues`.
 
@@ -190,4 +213,5 @@ After each invocation, briefly report:
 - which stage or stages ran
 - which file was created or updated
 - which commit or revert actions were created
+- which implementation or review subagents were launched
 - whether the workflow reached stage 5 or stopped early because the user explicitly asked it to
