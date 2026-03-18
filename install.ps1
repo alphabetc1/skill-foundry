@@ -1,4 +1,6 @@
 param(
+    [string]$Skill = "all",
+
     [ValidateSet("codex", "claude", "both")]
     [string]$Target = "both",
 
@@ -8,85 +10,50 @@ param(
     [ValidateSet("personal", "project")]
     [string]$Scope = "personal",
 
-    [string]$ProjectDir = ""
+    [string]$ProjectDir = "",
+
+    [switch]$List
 )
 
 $ErrorActionPreference = "Stop"
 
-$SkillName = "forge"
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$SourceItems = @("SKILL.md", "agents", "scripts", "references", "assets")
+$RootDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$SkillsDir = Join-Path $RootDir "skills"
 
-function Install-Copy {
-    param([string]$Destination)
-
-    if (Test-Path -LiteralPath $Destination) {
-        Remove-Item -LiteralPath $Destination -Recurse -Force
+function Get-SkillNames {
+    if (-not (Test-Path -LiteralPath $SkillsDir -PathType Container)) {
+        throw "Skills directory does not exist: $SkillsDir"
     }
 
-    New-Item -ItemType Directory -Path $Destination -Force | Out-Null
-
-    foreach ($Item in $SourceItems) {
-        $SourcePath = Join-Path $ScriptDir $Item
-        if (Test-Path -LiteralPath $SourcePath) {
-            Copy-Item -LiteralPath $SourcePath -Destination $Destination -Recurse -Force
-        }
-    }
+    Get-ChildItem -LiteralPath $SkillsDir -Directory |
+        Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName "install.ps1") -PathType Leaf } |
+        Select-Object -ExpandProperty Name |
+        Sort-Object
 }
 
-function Install-Link {
-    param([string]$Destination)
-
-    if (Test-Path -LiteralPath $Destination) {
-        Remove-Item -LiteralPath $Destination -Recurse -Force
-    }
-
-    $Parent = Split-Path -Parent $Destination
-    New-Item -ItemType Directory -Path $Parent -Force | Out-Null
-    New-Item -ItemType SymbolicLink -Path $Destination -Target $ScriptDir | Out-Null
+if ($List) {
+    Get-SkillNames | ForEach-Object { Write-Host $_ }
+    exit 0
 }
 
-function Install-Target {
-    param(
-        [string]$Label,
-        [string]$Destination
-    )
-
-    switch ($Mode) {
-        "copy" { Install-Copy -Destination $Destination }
-        "link" { Install-Link -Destination $Destination }
-    }
-
-    Write-Host ("Installed {0,-6} -> {1}" -f $Label, $Destination)
+$AvailableSkills = @(Get-SkillNames)
+if ($AvailableSkills.Count -eq 0) {
+    throw "No installable skills found under $SkillsDir"
 }
 
-if ($Scope -eq "project" -and [string]::IsNullOrWhiteSpace($ProjectDir)) {
-    $ProjectDir = (Get-Location).Path
+if ($Skill -eq "all") {
+    $SelectedSkills = $AvailableSkills
 }
-
-if (-not [string]::IsNullOrWhiteSpace($ProjectDir) -and -not (Test-Path -LiteralPath $ProjectDir -PathType Container)) {
-    throw "Project directory does not exist: $ProjectDir"
-}
-
-$CodexBase = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME ".codex" }
-$CodexTarget = Join-Path (Join-Path $CodexBase "skills") $SkillName
-
-if ($Scope -eq "project") {
-    $ClaudeTarget = Join-Path (Join-Path $ProjectDir ".claude/skills") $SkillName
+elseif ($AvailableSkills -contains $Skill) {
+    $SelectedSkills = @($Skill)
 }
 else {
-    $ClaudeTarget = Join-Path (Join-Path $HOME ".claude/skills") $SkillName
+    throw "Unknown skill: $Skill"
 }
 
-if ($Target -eq "codex" -or $Target -eq "both") {
-    Install-Target -Label "Codex" -Destination $CodexTarget
+foreach ($Name in $SelectedSkills) {
+    $Installer = Join-Path (Join-Path $SkillsDir $Name) "install.ps1"
+    Write-Host "Installing $Name"
+    & $Installer -Target $Target -Mode $Mode -Scope $Scope -ProjectDir $ProjectDir
+    Write-Host ""
 }
-
-if ($Target -eq "claude" -or $Target -eq "both") {
-    Install-Target -Label "Claude" -Destination $ClaudeTarget
-}
-
-Write-Host ""
-Write-Host "Next:"
-Write-Host "  Codex : start a new session, then invoke with `$forge"
-Write-Host "  Claude: start a new session, then invoke with /forge"

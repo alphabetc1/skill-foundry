@@ -48,7 +48,7 @@ What Forge does:
 - ends with a blocking-issue review loop
 
 Repo:
-https://github.com/alphabetc1/forge
+https://github.com/alphabetc1/skill-foundry/tree/main/skills/forge
 ```
 
 ## Chinese Launch Post
@@ -71,7 +71,7 @@ prompt.md -> research.md -> plan.md -> build -> review.md
 - 最后必须经过 blocking issue review loop
 
 仓库:
-https://github.com/alphabetc1/forge
+https://github.com/alphabetc1/skill-foundry/tree/main/skills/forge
 ```
 
 ## Follow-Up Post Ideas

@@ -1,191 +1,305 @@
-# Forge
+# Skill Foundry
 
-Turn a fuzzy coding request into shipped, reviewed code.
+Skill Foundry 是一个面向 Codex / Claude 的 skill monorepo。
 
-`prompt.md -> research.md -> plan.md -> build -> review.md`
+这个仓库不再把单个 skill 平铺在根目录，而是统一收敛到 `skills/<name>/`。每个 skill 自带自己的 `README.md`、`SKILL.md`、安装脚本、脚本文件、素材、示例和参考资料；根目录只负责总览、发现和批量安装。
 
-Forge is a staged skill for Codex and Claude. Invoke it explicitly with `$forge` or `/forge` when you want this workflow; it should not auto-trigger just because a task looks like a fit. It pushes a non-trivial coding task through a git-backed workflow that runs end to end by default while staying easy to review, resume, and revert.
+## 仓库目标
 
-## Why Forge
+- 用一个仓库维护多个可独立安装的 skill
+- 让每个 skill 保持自包含，便于单独演进和发布
+- 让根目录保留统一入口：总览、安装、发现、贡献约定
 
-| Common failure mode with AI coding | What Forge changes |
-| --- | --- |
-| The agent starts coding before the task is clear | Stage 1 rewrites the request into `prompt.md` before any implementation |
-| Research disappears inside chat history | Stage 2 stores repository findings in `research.md` |
-| Plans are vague or skipped | Stage 3 produces an implementation-ready `plan.md` |
-| Rework is hard after requirements change | Each stage is resumable and downstream commits can be reverted safely |
-| Review happens only if the user remembers to ask | Stage 5 forces a blocking-issue review loop before the task is done |
+## 当前 Skills
 
-## Who It Is For
+| 名字 | 简介 | 触发方式 | 适用场景 | 路径 |
+| --- | --- | --- | --- | --- |
+| `forge` | 显式触发的五阶段编码工作流 | `$forge` / `/forge` | 非 trivial 的开发、重构、修 bug、需要中间产物和 review 闭环的任务 | [`skills/forge`](skills/forge) |
+| `teacher` | 有状态的教学与面试准备工作流 | `$teacher` / `/teacher` | 多轮学习、面试准备、诊断薄弱点、维护学习状态 | [`skills/teacher`](skills/teacher) |
 
-- Developers shipping non-trivial changes with Codex or Claude
-- Teams that want reviewable artifacts before implementation
-- Repositories where resumable artifacts and reviewable stage commits matter
+## Monorepo 架构图
 
-## Not For
+```mermaid
+flowchart TD
+    repo["Skill Foundry<br/>monorepo root"]
 
-- One-line edits where a staged workflow would be overkill
-- Repositories without git history
-- Users who want the agent to freestyle instead of following an explicit process
+    repo --> root_install["install.sh / install.ps1<br/>统一发现与安装入口"]
+    repo --> skills["skills/"]
+    repo --> license["LICENSE / root README"]
 
-## 30-Second Demo
+    skills --> forge["forge/"]
+    skills --> teacher["teacher/"]
 
-1. Install the skill.
-2. Start with a plain-language task.
-3. Resume by mentioning a stage file only when you need to restart from the middle.
-4. Ask it to stop after a stage only when you want an intermediate checkpoint.
+    forge --> forge_core["SKILL.md / README.md"]
+    forge --> forge_ops["install.sh / install.ps1 / agents"]
+    forge --> forge_support["scripts / docs / examples"]
 
-```text
-Codex  : $forge Add CSV and JSON export for invoices
-Codex  : $forge Continue from research.md
-Codex  : $forge Continue from research.md but stop after plan.md
+    teacher --> teacher_core["SKILL.md / README.md"]
+    teacher --> teacher_ops["install.sh / install.ps1 / agents"]
+    teacher --> teacher_support["scripts / references / assets"]
+
+    classDef root fill:#EFF6FF,stroke:#2563EB,color:#1E3A8A,stroke-width:1.5px;
+    classDef skill fill:#FFF7ED,stroke:#EA580C,color:#7C2D12,stroke-width:1.5px;
+    classDef leaf fill:#F8FAFC,stroke:#475569,color:#0F172A,stroke-width:1.2px;
+
+    class repo,root_install,skills,license root;
+    class forge,teacher skill;
+    class forge_core,forge_ops,forge_support,teacher_core,teacher_ops,teacher_support leaf;
 ```
 
-You end up with:
-
-- `prompt.md`
-- `research.md`
-- `plan.md`
-- implementation changes
-- `review.md`
-- one git commit per stage
-
-## Example Workflows
-
-These examples make the workflow easy to share in docs, release notes, and social posts.
-
-| Example | What it shows | Folder |
-| --- | --- | --- |
-| New export feature | A product-facing feature request that becomes an implementation plan | [`examples/new-export-feature`](examples/new-export-feature) |
-| Auth refactor | A risky internal change that benefits from staged research and review | [`examples/auth-refactor`](examples/auth-refactor) |
-| Webhook bugfix | A debugging task that still needs structure and a final review loop | [`examples/payment-webhook-bugfix`](examples/payment-webhook-bugfix) |
-
-## Architecture
+## 仓库流程图
 
 ```mermaid
 flowchart LR
-    user([User request]) --> s1["1 Prompt<br/>prompt.md"]
-    s1 --> s2["2 Research<br/>research.md"]
-    s2 --> s3["3 Plan<br/>plan.md"]
-    s3 --> s4["4 Build<br/>implementation"]
-    s4 --> s5["5 Review<br/>review.md"]
+    author["维护者添加 / 更新 skill"] --> place["放入 skills/{name}/"]
+    place --> ship["补齐 README.md / SKILL.md / installer"]
+    ship --> discover["根目录 install.sh / install.ps1 自动发现"]
+    discover --> install["用户安装单个或全部 skills"]
+    install --> invoke["在 Codex / Claude 中显式调用 skill"]
 
-    s5 --> gate{Blocking issues?}
-    gate -->|Yes| fix["Fix"]
+    classDef step fill:#F0FDF4,stroke:#16A34A,color:#166534,stroke-width:1.5px;
+    class author,place,ship,discover,install,invoke step;
+```
+
+## 快速开始
+
+### 发现所有 skill
+
+```bash
+./install.sh --list
+```
+
+```powershell
+./install.ps1 -List
+```
+
+### 安装单个 skill
+
+```bash
+./install.sh forge
+./install.sh teacher claude --scope project --project-dir /path/to/repo
+```
+
+```powershell
+./install.ps1 -Skill forge
+./install.ps1 -Skill teacher -Target claude -Scope project -ProjectDir C:\path\to\repo
+```
+
+### 安装全部 skill
+
+```bash
+./install.sh all
+./install.sh all both --mode link
+```
+
+```powershell
+./install.ps1 -Skill all -Target both
+./install.ps1 -Skill all -Target both -Mode link
+```
+
+说明：
+
+- 根目录安装器会自动扫描 `skills/*/install.sh` 或 `skills/*/install.ps1`
+- 除第一个 `skill` 参数和第二个 `target` 参数外，其余参数都会透传给具体 skill 的安装器
+- `copy` 适合普通安装，`link` 适合本地开发和迭代 skill
+- `claude --scope project` 会把 skill 安装到目标仓库下的 `.claude/skills/`
+
+## 目录约定
+
+```text
+skills/
+  <name>/
+    README.md        # 面向人的说明文档
+    SKILL.md         # 面向 agent 的运行指令
+    install.sh       # Bash 安装器
+    install.ps1      # PowerShell 安装器（可选但推荐）
+    agents/          # Agent 元数据
+    scripts/         # 辅助脚本
+    assets/          # 模板、素材
+    references/      # 参考资料 / schema / curriculum
+    docs/            # 发布、宣传、额外说明
+    examples/        # 可复用示例
+```
+
+## Skills 详解
+
+### 1. `forge`
+
+**简介**
+
+`forge` 是一个显式触发的五阶段开发 skill，用来把模糊需求稳定推进成可 review、可恢复、可回滚的实现流程。
+
+核心特征：
+
+- 必须显式调用，不会因为“看起来像开发任务”而自动触发
+- 中间产物固定为 `prompt.md`、`research.md`、`plan.md`、实现代码、`review.md`
+- 每个阶段都有明确边界，并且对应 git stage commit
+- 支持从指定阶段恢复，并在恢复前回滚失效的下游阶段提交
+
+**架构图**
+
+```mermaid
+flowchart TD
+    forge["forge"]
+    forge --> docs["README.md<br/>人类说明"]
+    forge --> runtime["SKILL.md<br/>运行规则"]
+    forge --> install["install.sh / install.ps1"]
+    forge --> scripts["scripts/revert_stage_commits.py<br/>恢复时回滚下游阶段"]
+    forge --> agents["agents/openai.yaml"]
+    forge --> examples["examples/{case}/...<br/>完整阶段样例"]
+    forge --> releases["docs/launch.md / docs/releases/*"]
+
+    classDef core fill:#FFF7ED,stroke:#EA580C,color:#7C2D12,stroke-width:1.5px;
+    classDef support fill:#F8FAFC,stroke:#475569,color:#0F172A,stroke-width:1.2px;
+
+    class forge,runtime,scripts core;
+    class docs,install,agents,examples,releases support;
+```
+
+**流程图**
+
+```mermaid
+flowchart LR
+    req([用户需求]) --> s1["Stage 1<br/>prompt.md"]
+    s1 --> s2["Stage 2<br/>research.md"]
+    s2 --> s3["Stage 3<br/>plan.md"]
+    s3 --> s4["Stage 4<br/>实现代码"]
+    s4 --> s5["Stage 5<br/>review.md"]
+    s5 --> gate{还有 blocking issue 吗?}
+    gate -->|是| fix["立即修复并复查"]
     fix --> s5
-    gate -->|No| done([Done])
+    gate -->|否| done([完成])
 
-    shared["Every stage:<br/>resume + revert"]
-    shared -.-> s1
-    shared -.-> s2
-    shared -.-> s3
-    shared -.-> s4
-    shared -.-> s5
+    resume["可从 prompt.md / research.md / plan.md / review.md 恢复"]
+    resume -.-> s2
+    resume -.-> s3
+    resume -.-> s4
+    resume -.-> s5
 
-    classDef stage fill:#FFF4E5,stroke:#D97706,color:#7C2D12,stroke-width:1.5px;
-    classDef decision fill:#FEF2F2,stroke:#DC2626,color:#991B1B,stroke-width:1.5px;
-    classDef action fill:#F5F3FF,stroke:#7C3AED,color:#5B21B6,stroke-width:1.5px;
-    classDef note fill:#EFF6FF,stroke:#2563EB,color:#1E3A8A,stroke-width:1.5px;
+    classDef stage fill:#FEF3C7,stroke:#D97706,color:#78350F,stroke-width:1.5px;
+    classDef action fill:#EEF2FF,stroke:#4F46E5,color:#312E81,stroke-width:1.5px;
     classDef done fill:#ECFDF3,stroke:#16A34A,color:#166534,stroke-width:1.5px;
 
     class s1,s2,s3,s4,s5 stage;
-    class gate decision;
-    class fix action;
-    class shared note;
+    class fix,resume action;
     class done done;
 ```
 
-Quick read:
+**用法**
 
-- No stage file mentioned means start at stage 1 and continue through `review.md` by default.
-- Mention `prompt.md`, `research.md`, `plan.md`, or `review.md` to resume from that starting point.
-- Ask to stop after a specific stage only when you want an intermediate checkpoint.
-- Every stage supports revert before continuing.
-- Stage 5 is the only self-loop.
-
-## Install
-
-### macOS / Linux
+安装：
 
 ```bash
-./install.sh both
+./install.sh forge
+./install.sh forge both --mode link
 ```
 
-### Windows PowerShell
-
-```powershell
-./install.ps1 -Target both
-```
-
-Install only one tool if needed:
-
-```bash
-./install.sh codex
-./install.sh claude
-./install.sh claude --scope project --project-dir /path/to/repo
-```
-
-By default the installer copies the skill into:
-
-- Codex: `${CODEX_HOME:-~/.codex}/skills/forge`
-- Claude personal: `~/.claude/skills/forge`
-- Claude project: `<repo>/.claude/skills/forge`
-
-Use `--mode link` or `-Mode link` if you want a live symlink during development.
-
-## Use
-
-Start a new session after installing.
-
-Forge is intended for explicit invocation only. Do not rely on the agent inferring Forge from the task shape alone.
+调用：
 
 ```text
 Codex  : $forge 帮我实现一个新的导出功能
-Claude : /forge 帮我实现一个新的导出功能
+Codex  : $forge 请基于 research.md 继续，但只生成 plan.md
+Claude : /forge Continue from plan.md and finish implementation plus review
 ```
 
-## Stages
+更适合这类任务：
 
-| Stage | Trigger | Output |
-| --- | --- | --- |
-| 1 | no stage file mentioned | `prompt.md` |
-| 2 | mention `prompt.md` | `research.md` |
-| 3 | mention `research.md` | `plan.md` |
-| 4 | mention `plan.md` | implementation |
-| 5 | mention `review.md` | `review.md` plus fixes for blocking issues |
+- 新功能开发
+- 中等以上复杂度的 bug 修复
+- 需要先研究再实现的重构
+- 需要中间文档、明确审查和可恢复能力的工作
 
-These triggers select the starting stage. Forge continues into later stages by default unless the user explicitly asks it to stop early.
+### 2. `teacher`
 
-Rules that matter:
+**简介**
 
-- Mentioning the file name explicitly selects the starting stage for resume.
-- If you do not add another constraint, Forge continues from that starting stage through stage 5 in one invocation.
-- Ask to stop after `prompt.md`, `research.md`, `plan.md`, or implementation only when you want an intermediate pause.
-- Stages 1-3 only write docs. No implementation before stage 4.
-- Stage 5 loops inside one session until `review.md` says no blocking issues remain.
-- Each stage ends with its own git commit.
+`teacher` 是一个有状态的学习 skill。它把学习状态外置到文件，把主题组织成课程图，并且每次会话只选择一个主模式来推进学习。
 
-## Resume Examples
+核心特征：
+
+- 学习状态保存在 `learning/{topic-slug}/`
+- 每轮会话都会读状态、选模式、选模块、执行、写回状态
+- 模式明确区分 `map / teach / diagnose / drill / recall / plan`
+- 默认内置 `LLM inference interview prep` 的课程图和学习模板
+
+**架构图**
+
+```mermaid
+flowchart TD
+    teacher["teacher"]
+    teacher --> runtime["SKILL.md<br/>教学循环规则"]
+    teacher --> install["install.sh / install.ps1"]
+    teacher --> refs["references/<br/>state-schema / session-modes / curriculum"]
+    teacher --> assets["assets/<br/>learner-state / session-log 模板"]
+    teacher --> scripts["scripts/init_learning_state.py<br/>初始化学习状态"]
+    teacher --> agents["agents/openai.yaml"]
+
+    runtime --> learning["learning/{topic-slug}/learner-state.yaml<br/>learning/{topic-slug}/session-log.md"]
+
+    classDef core fill:#ECFEFF,stroke:#0891B2,color:#164E63,stroke-width:1.5px;
+    classDef support fill:#F8FAFC,stroke:#475569,color:#0F172A,stroke-width:1.2px;
+
+    class teacher,runtime,learning,refs,assets,scripts core;
+    class install,agents support;
+```
+
+**流程图**
+
+```mermaid
+flowchart LR
+    goal([学习目标 / 面试目标]) --> check{learning/{topic-slug}<br/>是否存在?}
+    check -->|否| init["初始化 learner-state.yaml + session-log.md"]
+    check -->|是| load["读取 learner-state.yaml<br/>读取最近 session-log.md"]
+    init --> load
+    load --> mode["选择一个主模式"]
+    mode --> module["选择当前模块"]
+    module --> run["执行本轮讲解 / 诊断 / drill / recall / plan"]
+    run --> update["更新状态与证据"]
+    update --> next["输出唯一 next action"]
+
+    classDef stage fill:#CCFBF1,stroke:#0F766E,color:#134E4A,stroke-width:1.5px;
+
+    class init,load,mode,module,run,update,next stage;
+```
+
+**用法**
+
+安装：
+
+```bash
+./install.sh teacher
+./install.sh teacher both --mode link
+```
+
+如需先初始化学习状态：
+
+```bash
+python skills/teacher/scripts/init_learning_state.py --topic "LLM inference interview prep" --base-dir skills/teacher
+```
+
+调用：
 
 ```text
-$forge 帮我设计一个新的权限系统
-$forge 请基于 prompt.md 继续到结束
-$forge 请基于 research.md 继续，但只生成 plan.md
-$forge 请基于 plan.md 继续实现并 review 到完成
+Codex  : $teacher 帮我开始准备 LLM inference 面试，先给我全景图
+Codex  : $teacher 帮我诊断一下我对 KV cache 和 continuous batching 的真实水平
+Claude : /teacher 帮我做一次 LLM serving mock interview drill
 ```
 
-## Promotion Assets
+更适合这类任务：
 
-- [`examples/`](examples) contains shareable case studies you can link in posts and release notes.
-- [`docs/launch.md`](docs/launch.md) contains a launch checklist plus English and Chinese post copy.
-- [`docs/releases/v0.1.0.md`](docs/releases/v0.1.0.md) contains a first release draft you can paste into GitHub Releases.
+- 需要跨多轮持续推进的学习目标
+- 面试准备
+- 知识诊断和薄弱点追踪
+- 需要课程图、复习队列和明确下一步动作的场景
 
-## Included
+## 新增 Skill 的方式
 
-- `SKILL.md` - the Forge workflow itself
-- `scripts/revert_stage_commits.py` - revert downstream stage commits safely
-- `agents/openai.yaml` - Codex skill metadata
+1. 在 `skills/<name>/` 下创建独立目录。
+2. 至少补齐 `README.md`、`SKILL.md`、`install.sh`。
+3. 如果希望支持原生 PowerShell 安装，再补 `install.ps1`。
+4. 把脚本、素材、示例、参考资料都收进该 skill 自己的目录。
+5. 根目录安装器会自动发现可安装 skill，无需再改额外索引代码。
 
 ## License
 
-Apache-2.0
+Apache-2.0. See [`LICENSE`](LICENSE).

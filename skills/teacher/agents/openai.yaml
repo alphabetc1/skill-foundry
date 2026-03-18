@@ -1,0 +1,4 @@
+interface:
+  display_name: "Teacher"
+  short_description: "Stateful learning and interview prep workflows"
+  default_prompt: "Use $teacher to run a stateful LLM inference interview prep session."

@@ -1,0 +1,34 @@
+topic: "{{TOPIC}}"
+goal: "{{GOAL}}"
+deadline: "{{DEADLINE}}"
+background: "{{BACKGROUND}}"
+
+current_module:
+  id: "{{INITIAL_MODULE_ID}}"
+  status: "not-started"
+  why_now: "{{INITIAL_MODULE_REASON}}"
+
+# Example item shapes:
+# mastered:
+#   - module: "prefill-decode"
+#     topic: "Decode is memory-bound for long contexts"
+#     evidence: "Learner explained the tradeoff clearly."
+#     verified_on: "2026-03-14"
+# shaky:
+#   - module: "batching-scheduling"
+#     topic: "Continuous batching fairness tradeoffs"
+#     signal: "Missed tail-latency impact."
+#     next_check: "Ask for a scheduler comparison."
+# misconceptions:
+#   - module: "kv-cache"
+#     belief: "KV cache only matters during prefill"
+#     correction: "KV cache mainly supports decode reuse and changes memory pressure."
+#     observed_in: "diagnose session"
+
+mastered: []
+shaky: []
+prerequisite_gaps: []
+misconceptions: []
+review_queue: []
+recent_session_evidence: []
+next_action: "{{NEXT_ACTION}}"
