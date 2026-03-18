@@ -5,8 +5,8 @@
 # 当前状态
 
 - 仓库当前已有：
-  - [prompt.md](/root/code/tools/skills/skill-foundry/skills/mentor/prompt.md)
-  - [research.md](/root/code/tools/skills/skill-foundry/skills/mentor/research.md)
+  - [prompt.md](/root/code/tools/skills/agent-skills/skills/mentor/prompt.md)
+  - [research.md](/root/code/tools/skills/agent-skills/skills/mentor/research.md)
 - 仓库当前缺失：
   - `SKILL.md`
   - `references/`
@@ -219,8 +219,8 @@
 
 按以下顺序验证：
 
-1. 运行 `python /root/.codex/skills/.system/skill-creator/scripts/quick_validate.py /root/code/tools/skills/skill-foundry/skills/mentor`
-2. 运行 `python /root/.codex/skills/.system/skill-creator/scripts/generate_openai_yaml.py /root/code/tools/skills/skill-foundry/skills/mentor --interface display_name=Mentor --interface short_description='Stateful long-term learning workflows' --interface default_prompt='Use $mentor to run a stateful long-term learning session for a repo or knowledge domain.'`
+1. 运行 `python /root/.codex/skills/.system/skill-creator/scripts/quick_validate.py /root/code/tools/skills/agent-skills/skills/mentor`
+2. 运行 `python /root/.codex/skills/.system/skill-creator/scripts/generate_openai_yaml.py /root/code/tools/skills/agent-skills/skills/mentor --interface display_name=Mentor --interface short_description='Stateful long-term learning workflows' --interface default_prompt='Use $mentor to run a stateful long-term learning session for a repo or knowledge domain.'`
 3. 运行 `python scripts/init_learning_state.py --topic 'LLM inference interview prep' --base-dir /tmp/mentor-skill-check`
 4. 检查 `/tmp/mentor-skill-check/learning/llm-inference-interview-prep/` 下是否生成目标文件
 5. 如验证通过，确保临时验证产物不纳入 git 提交

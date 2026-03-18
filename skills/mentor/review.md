@@ -10,7 +10,7 @@
 # 已检查内容
 
 - 检查了 `SKILL.md`、`references/`、`assets/`、`scripts/init_learning_state.py`、`agents/openai.yaml`
-- 运行了 `python /root/.codex/skills/.system/skill-creator/scripts/quick_validate.py /root/code/tools/skills/skill-foundry/skills/mentor`
+- 运行了 `python /root/.codex/skills/.system/skill-creator/scripts/quick_validate.py /root/code/tools/skills/agent-skills/skills/mentor`
 - 运行了 `python scripts/init_learning_state.py --topic 'LLM inference interview prep' --base-dir /tmp/mentor-skill-check --force`
 - 运行了 `python scripts/init_learning_state.py --topic '大模型推理面试准备' --base-dir /tmp/mentor-skill-check-cn --force`
 - 运行了 `python -m py_compile scripts/init_learning_state.py`

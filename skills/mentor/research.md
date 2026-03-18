@@ -1,6 +1,6 @@
 # 当前状态
 
-当前仓库只有 [prompt.md](/root/code/tools/skills/skill-foundry/skills/mentor/prompt.md)，还没有 `SKILL.md`、`references/`、`assets/`、`agents/openai.yaml` 或初始化脚本。也就是说，`mentor` skill 目前尚未成形，需要从零搭建一个可被其他 agent 直接调用的技能目录。
+当前仓库只有 [prompt.md](/root/code/tools/skills/agent-skills/skills/mentor/prompt.md)，还没有 `SKILL.md`、`references/`、`assets/`、`agents/openai.yaml` 或初始化脚本。也就是说，`mentor` skill 目前尚未成形，需要从零搭建一个可被其他 agent 直接调用的技能目录。
 
 # 问题背景
 
@@ -93,7 +93,7 @@
 
 ## 策略 1（推荐）
 
-- 运行 `python /root/.codex/skills/.system/skill-creator/scripts/quick_validate.py /root/code/tools/skills/skill-foundry/skills/mentor`
+- 运行 `python /root/.codex/skills/.system/skill-creator/scripts/quick_validate.py /root/code/tools/skills/agent-skills/skills/mentor`
 - 运行 `python scripts/init_learning_state.py --topic "LLM inference interview prep"` 或等价最小命令，验证能创建 `learning/<topic-slug>/learner-state.yaml` 与 `session-log.md`
 - 检查生成文件是否与模板一致且路径符合约定
 
