@@ -145,7 +145,7 @@ Install only one tool if needed:
 
 By default the installer copies the skill into:
 
-- Codex: `${CODEX_HOME:-~/.codex}/skills/forge`
+- Codex: `${AGENTS_HOME:-~/.agents}/skills/forge`
 - Claude personal: `~/.claude/skills/forge`
 - Claude project: `<repo>/.claude/skills/forge`
 

@@ -68,8 +68,8 @@ if (-not [string]::IsNullOrWhiteSpace($ProjectDir) -and -not (Test-Path -Literal
     throw "Project directory does not exist: $ProjectDir"
 }
 
-$CodexBase = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME ".codex" }
-$CodexTarget = Join-Path (Join-Path $CodexBase "skills") $SkillName
+$AgentsBase = if ($env:AGENTS_HOME) { $env:AGENTS_HOME } else { Join-Path $HOME ".agents" }
+$CodexTarget = Join-Path (Join-Path $AgentsBase "skills") $SkillName
 
 if ($Scope -eq "project") {
     $ClaudeTarget = Join-Path (Join-Path $ProjectDir ".claude/skills") $SkillName

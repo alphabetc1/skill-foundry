@@ -38,7 +38,7 @@ flowchart TD
         codex_docs["AGENTS.md"]
         codex_cfg[".codex/config.toml"]
         codex_rules[".codex/rules"]
-        codex_skills[".codex/skills/*<br/>以及 repo/.agents/skills/*"]
+        codex_skills["~/.agents/skills/*<br/>以及 repo/.agents/skills/*"]
         codex_notes["claude-codex-sync/unsupported/*"]
     end
 

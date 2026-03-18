@@ -133,7 +133,7 @@ install_target() {
   printf 'Installed %-6s -> %s\n' "$label" "$target_dir"
 }
 
-CODEX_TARGET="${CODEX_HOME:-$HOME/.codex}/skills/$SKILL_NAME"
+CODEX_TARGET="${AGENTS_HOME:-$HOME/.agents}/skills/$SKILL_NAME"
 if [[ "$CLAUDE_SCOPE" == "project" ]]; then
   CLAUDE_TARGET="$PROJECT_DIR/.claude/skills/$SKILL_NAME"
 else

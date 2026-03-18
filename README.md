@@ -55,6 +55,7 @@ Claude : /mentor 帮我长期学习大模型推理，跟踪我当前进度和下
 - 根目录安装器会自动扫描 `skills/*/install.sh` 或 `skills/*/install.ps1`
 - 除第一个 `skill` 参数和第二个 `target` 参数外，其余参数会透传给具体 skill 的安装器
 - `copy` 适合普通安装，`link` 适合本地开发和迭代 skill
+- Codex 用户级 skill 会安装到 `~/.agents/skills/`，仓库级 skill 走 `<repo>/.agents/skills/`
 - `claude --scope project` 会把 skill 安装到目标仓库下的 `.claude/skills/`
 
 ## 新增 Skill 文档要求

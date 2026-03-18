@@ -56,7 +56,7 @@ flowchart TD
 
 默认会安装到：
 
-- Codex: `${CODEX_HOME:-~/.codex}/skills/mentor`
+- Codex: `${AGENTS_HOME:-~/.agents}/skills/mentor`
 - Claude personal: `~/.claude/skills/mentor`
 
 常用变体：

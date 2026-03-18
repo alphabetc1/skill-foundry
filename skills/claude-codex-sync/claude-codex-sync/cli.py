@@ -492,10 +492,10 @@ def platform_paths(
     skills_dirs: list[Path] = []
     managed_skills_dirs: list[Path] = []
     if scope == "user":
-        skills_dirs.append(home_codex_skills_dir)
-        managed_skills_dirs.append(home_codex_skills_dir)
-        if home_agents_dir.exists():
-            skills_dirs.append(home_agents_dir)
+        skills_dirs.append(home_agents_dir)
+        managed_skills_dirs.append(home_agents_dir)
+        if home_codex_skills_dir.exists():
+            skills_dirs.append(home_codex_skills_dir)
     else:
         if repo_agents_dir is not None:
             skills_dirs.extend([repo_agents_dir])

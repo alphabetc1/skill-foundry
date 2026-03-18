@@ -105,6 +105,22 @@ class ClaudeCodexSyncTests(unittest.TestCase):
             paths = {str(op.path) for op in plan}
             self.assertIn(str(home / ".claude" / "skills" / "demo"), paths)
 
+    def test_build_user_plan_targets_agents_skills_for_codex(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp) / "home"
+            (home / ".claude" / "skills" / "demo").mkdir(parents=True)
+            (home / ".claude" / "skills" / "demo" / "SKILL.md").write_text(
+                "---\nname: demo\ndescription: Demo skill\n---\n\nDemo\n",
+                encoding="utf-8",
+            )
+            ctx = SyncContext(cwd=home, home=home)
+
+            plan = build_sync_plan(ctx, "claude", "codex", "user", None)
+
+            paths = {str(op.path) for op in plan}
+            self.assertIn(str(home / ".agents" / "skills" / "demo"), paths)
+            self.assertNotIn(str(home / ".codex" / "skills" / "demo"), paths)
+
     def test_apply_plan_refuses_unmanaged_skill_overwrite_without_force(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             repo = Path(tmp)
