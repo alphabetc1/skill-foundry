@@ -1,67 +1,23 @@
 # Skill Foundry
 
-Skill Foundry 是一个面向 Codex / Claude 的 skill monorepo。
+Skill Foundry 是一个面向 Codex / Claude 的 skill 仓库，用来维护一组可安装、可复用、可独立演进的实用 skills。
 
-这个仓库不再把单个 skill 平铺在根目录，而是统一收敛到 `skills/<name>/`。每个 skill 自带自己的 `README.md`、`SKILL.md`、安装脚本、脚本文件、素材、示例和参考资料；根目录只负责总览、发现和批量安装。
+这里的 skill 既可以是结构化开发工作流，也可以是长期学习工作流。根目录负责总览和安装入口；每个 skill 在自己的目录里维护文档、运行指令、安装器、脚本和参考资料。
 
 ## 仓库目标
 
-- 用一个仓库维护多个可独立安装的 skill
-- 让每个 skill 保持自包含，便于单独演进和发布
-- 让根目录保留统一入口：总览、安装、发现、贡献约定
+- 维护高质量、可复用的 Codex / Claude skills
+- 让每个 skill 都能独立安装、独立迭代、独立说明
+- 提供统一的发现、安装和使用入口
 
-## 当前 Skills
+## Skills
 
-| 名字 | 简介 | 触发方式 | 适用场景 | 路径 |
+| 名字 | 简介 | 适用场景 | 触发方式 | 路径 |
 | --- | --- | --- | --- | --- |
-| `forge` | 显式触发的五阶段编码工作流 | `$forge` / `/forge` | 非 trivial 的开发、重构、修 bug、需要中间产物和 review 闭环的任务 | [`skills/forge`](skills/forge) |
-| `teacher` | 有状态的教学与面试准备工作流 | `$teacher` / `/teacher` | 多轮学习、面试准备、诊断薄弱点、维护学习状态 | [`skills/teacher`](skills/teacher) |
+| `forge` | 显式触发的五阶段编码工作流 | 非 trivial 的开发、重构、修 bug、需要中间产物和 review 闭环的任务 | `$forge` / `/forge` | [`skills/forge`](skills/forge) |
+| `teacher` | 有状态的长期学习 skill，支持围绕 GitHub repo 或知识领域持续学习 | 系统学习某个仓库、某个技术领域，跟踪当前进度、薄弱点、待学习目标 | `$teacher` / `/teacher` | [`skills/teacher`](skills/teacher) |
 
-## Monorepo 架构图
-
-```mermaid
-flowchart TD
-    repo["Skill Foundry<br/>monorepo root"]
-
-    repo --> root_install["install.sh / install.ps1<br/>统一发现与安装入口"]
-    repo --> skills["skills/"]
-    repo --> license["LICENSE / root README"]
-
-    skills --> forge["forge/"]
-    skills --> teacher["teacher/"]
-
-    forge --> forge_core["SKILL.md / README.md"]
-    forge --> forge_ops["install.sh / install.ps1 / agents"]
-    forge --> forge_support["scripts / docs / examples"]
-
-    teacher --> teacher_core["SKILL.md / README.md"]
-    teacher --> teacher_ops["install.sh / install.ps1 / agents"]
-    teacher --> teacher_support["scripts / references / assets"]
-
-    classDef root fill:#EFF6FF,stroke:#2563EB,color:#1E3A8A,stroke-width:1.5px;
-    classDef skill fill:#FFF7ED,stroke:#EA580C,color:#7C2D12,stroke-width:1.5px;
-    classDef leaf fill:#F8FAFC,stroke:#475569,color:#0F172A,stroke-width:1.2px;
-
-    class repo,root_install,skills,license root;
-    class forge,teacher skill;
-    class forge_core,forge_ops,forge_support,teacher_core,teacher_ops,teacher_support leaf;
-```
-
-## 仓库流程图
-
-```mermaid
-flowchart LR
-    author["维护者添加 / 更新 skill"] --> place["放入 skills/{name}/"]
-    place --> ship["补齐 README.md / SKILL.md / installer"]
-    ship --> discover["根目录 install.sh / install.ps1 自动发现"]
-    discover --> install["用户安装单个或全部 skills"]
-    install --> invoke["在 Codex / Claude 中显式调用 skill"]
-
-    classDef step fill:#F0FDF4,stroke:#16A34A,color:#166534,stroke-width:1.5px;
-    class author,place,ship,discover,install,invoke step;
-```
-
-## 快速开始
+## Quick Start
 
 ### 发现所有 skill
 
@@ -97,33 +53,24 @@ flowchart LR
 ./install.ps1 -Skill all -Target both -Mode link
 ```
 
+### 调用示例
+
+```text
+Codex  : $forge 帮我实现一个新的导出功能
+Codex  : $teacher 帮我系统学习 vLLM 这个仓库，先梳理整体架构和 serving 路径
+Claude : /teacher 帮我长期学习大模型推理，跟踪我当前进度和下一步目标
+```
+
 说明：
 
 - 根目录安装器会自动扫描 `skills/*/install.sh` 或 `skills/*/install.ps1`
-- 除第一个 `skill` 参数和第二个 `target` 参数外，其余参数都会透传给具体 skill 的安装器
+- 除第一个 `skill` 参数和第二个 `target` 参数外，其余参数会透传给具体 skill 的安装器
 - `copy` 适合普通安装，`link` 适合本地开发和迭代 skill
 - `claude --scope project` 会把 skill 安装到目标仓库下的 `.claude/skills/`
 
-## 目录约定
-
-```text
-skills/
-  <name>/
-    README.md        # 面向人的说明文档
-    SKILL.md         # 面向 agent 的运行指令
-    install.sh       # Bash 安装器
-    install.ps1      # PowerShell 安装器（可选但推荐）
-    agents/          # Agent 元数据
-    scripts/         # 辅助脚本
-    assets/          # 模板、素材
-    references/      # 参考资料 / schema / curriculum
-    docs/            # 发布、宣传、额外说明
-    examples/        # 可复用示例
-```
-
 ## Skills 详解
 
-### 1. `forge`
+### `forge`
 
 **简介**
 
@@ -209,37 +156,46 @@ Claude : /forge Continue from plan.md and finish implementation plus review
 - 需要先研究再实现的重构
 - 需要中间文档、明确审查和可恢复能力的工作
 
-### 2. `teacher`
+### `teacher`
 
 **简介**
 
-`teacher` 是一个有状态的学习 skill。它把学习状态外置到文件，把主题组织成课程图，并且每次会话只选择一个主模式来推进学习。
+`teacher` 是一个有状态的长期学习 skill。它适合让 learner 围绕一个 GitHub repo、一个技术系统，或者一个知识领域持续学习，而不是每轮都从零开始。
+
+它会把学习状态外置到文件，用长期记忆记录 learner 当前进度、已掌握内容、不稳固内容、待学习目标和下一步动作，并在每次会话里监督学习是否真正推进。
+
+典型学习对象：
+
+- 一个 GitHub repo，例如 `vLLM`、`SGLang`、`PyTorch`
+- 一个技术领域，例如大模型推理、CUDA 性能优化、分布式训练
+- 一个长期主题，例如面试准备、系统设计、源码阅读
 
 核心特征：
 
 - 学习状态保存在 `learning/{topic-slug}/`
-- 每轮会话都会读状态、选模式、选模块、执行、写回状态
+- 每轮会话都会读取长期记忆，而不是只依赖聊天上下文
+- 会跟踪 learner 当前进度、薄弱点、待学习目标和唯一下一步动作
 - 模式明确区分 `map / teach / diagnose / drill / recall / plan`
-- 默认内置 `LLM inference interview prep` 的课程图和学习模板
+- 默认内置 `LLM inference` 方向的课程图和模板
 
 **架构图**
 
 ```mermaid
 flowchart TD
     teacher["teacher"]
-    teacher --> runtime["SKILL.md<br/>教学循环规则"]
+    teacher --> runtime["SKILL.md<br/>长期学习规则"]
     teacher --> install["install.sh / install.ps1"]
     teacher --> refs["references/<br/>state-schema / session-modes / curriculum"]
     teacher --> assets["assets/<br/>learner-state / session-log 模板"]
-    teacher --> scripts["scripts/init_learning_state.py<br/>初始化学习状态"]
+    teacher --> scripts["scripts/init_learning_state.py<br/>初始化长期记忆"]
     teacher --> agents["agents/openai.yaml"]
 
-    runtime --> learning["learning/{topic-slug}/learner-state.yaml<br/>learning/{topic-slug}/session-log.md"]
+    runtime --> memory["learning/{topic-slug}/learner-state.yaml<br/>learning/{topic-slug}/session-log.md"]
 
     classDef core fill:#ECFEFF,stroke:#0891B2,color:#164E63,stroke-width:1.5px;
     classDef support fill:#F8FAFC,stroke:#475569,color:#0F172A,stroke-width:1.2px;
 
-    class teacher,runtime,learning,refs,assets,scripts core;
+    class teacher,runtime,memory,refs,assets,scripts core;
     class install,agents support;
 ```
 
@@ -247,15 +203,15 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    goal([学习目标 / 面试目标]) --> check{learning/{topic-slug}<br/>是否存在?}
+    target([学习对象: repo / 领域知识]) --> check{长期记忆是否存在?}
     check -->|否| init["初始化 learner-state.yaml + session-log.md"]
-    check -->|是| load["读取 learner-state.yaml<br/>读取最近 session-log.md"]
+    check -->|是| load["读取当前进度 / 薄弱点 / 待学习目标"]
     init --> load
     load --> mode["选择一个主模式"]
     mode --> module["选择当前模块"]
-    module --> run["执行本轮讲解 / 诊断 / drill / recall / plan"]
-    run --> update["更新状态与证据"]
-    update --> next["输出唯一 next action"]
+    module --> run["执行本轮学习"]
+    run --> update["更新长期记忆"]
+    update --> next["输出下一步目标"]
 
     classDef stage fill:#CCFBF1,stroke:#0F766E,color:#134E4A,stroke-width:1.5px;
 
@@ -271,7 +227,7 @@ flowchart LR
 ./install.sh teacher both --mode link
 ```
 
-如需先初始化学习状态：
+如需先初始化长期记忆：
 
 ```bash
 python skills/teacher/scripts/init_learning_state.py --topic "LLM inference interview prep" --base-dir skills/teacher
@@ -280,17 +236,17 @@ python skills/teacher/scripts/init_learning_state.py --topic "LLM inference inte
 调用：
 
 ```text
-Codex  : $teacher 帮我开始准备 LLM inference 面试，先给我全景图
-Codex  : $teacher 帮我诊断一下我对 KV cache 和 continuous batching 的真实水平
-Claude : /teacher 帮我做一次 LLM serving mock interview drill
+Codex  : $teacher 帮我系统学习 vLLM 这个仓库，先梳理整体架构和 serving 路径
+Codex  : $teacher 帮我长期学习大模型推理，监督我现在的学习进度和待学习目标
+Claude : /teacher 帮我继续上次的 LLM inference 学习，从 KV cache 开始
 ```
 
 更适合这类任务：
 
-- 需要跨多轮持续推进的学习目标
-- 面试准备
-- 知识诊断和薄弱点追踪
-- 需要课程图、复习队列和明确下一步动作的场景
+- 系统学习一个 GitHub repo 或代码库
+- 系统学习一个技术领域，例如大模型推理
+- 需要长期记忆、学习进度监督和待学习目标管理的场景
+- 需要多轮推进而不是单轮问答的学习任务
 
 ## 新增 Skill 的方式
 
